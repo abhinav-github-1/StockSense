@@ -38,9 +38,12 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, data: response.data };
     } catch (error) {
+      const targetUrl = api.defaults.baseURL || 'unknown server';
       const message =
         error.response?.data?.message ||
-        (error.response?.status === 401 ? 'Invalid username or password.' : 'Unable to connect to the server.');
+        (error.response?.status === 401
+          ? 'Invalid username or password.'
+          : `Unable to connect to server at ${targetUrl}. Please verify your Render service URL.`);
       return { success: false, error: message };
     } finally {
       setLoading(false);
