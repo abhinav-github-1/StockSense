@@ -36,5 +36,5 @@ services:
 databases:
   - name: stocksense-db
     databaseName: stocksense
-    user: postgres
+    user: stocksense_user
     plan: free
