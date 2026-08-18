@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: stocksense-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8083
+      - key: DB_HOST
+        fromDatabase:
+          name: stocksense-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: stocksense-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: stocksense-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: stocksense-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: stocksense-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:5173,https://*.vercel.app
+
+databases:
+  - name: stocksense-db
+    databaseName: stocksense
+    user: postgres
+    plan: free
