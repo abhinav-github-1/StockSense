@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/", "/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/products/**", "/api/categories/**", "/api/suppliers/**", "/api/transactions/**", "/api/dashboard/**", "/api/alerts/**", "/api/reorder/**", "/api/inventory/**", "/api/users/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -64,7 +64,7 @@ public class SecurityConfig {
                     .toList();
             configuration.setAllowedOriginPatterns(origins);
         } else {
-            configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://127.0.0.1:5173", "https://*.vercel.app"));
+            configuration.setAllowedOriginPatterns(List.of("*"));
         }
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
