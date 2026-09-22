@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
         error.response?.data?.message ||
         (error.response?.status === 401
           ? 'Invalid username or password.'
-          : `Unable to connect to server at ${targetUrl}. Please verify your Render service URL.`);
+          : `Unable to connect to backend at ${targetUrl}. If the Render backend was sleeping, it takes ~30-60s to wake up on free tier. Please wait a moment and try again.`);
       return { success: false, error: message };
     } finally {
       setLoading(false);

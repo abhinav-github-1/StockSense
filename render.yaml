@@ -31,7 +31,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: http://localhost:5173,https://*.vercel.app
+        value: http://localhost:5173,https://*.vercel.app,https://stock-sense-ivory.vercel.app
 
 databases:
   - name: stocksense-db

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Primary;
 import javax.sql.DataSource;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Connection;
 
 @Configuration
 public class DatabaseConfig {
@@ -97,21 +98,55 @@ public class DatabaseConfig {
             finalJdbcUrl = "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName + "?sslmode=prefer";
         }
 
-        logger.info("Initializing DataSource with JDBC URL: {}", finalJdbcUrl);
+        logger.info("Target DataSource JDBC URL: {}", finalJdbcUrl);
 
+        // Attempt PostgreSQL connection
+        try {
+            HikariConfig hikariConfig = createHikariConfig(finalJdbcUrl, username, password, driverClassName);
+            HikariDataSource pgDataSource = new HikariDataSource(hikariConfig);
+            
+            // Validate connection with 3-second timeout
+            try (Connection conn = pgDataSource.getConnection()) {
+                if (conn.isValid(3)) {
+                    logger.info("Successfully connected to PostgreSQL database!");
+                    return pgDataSource;
+                }
+            } catch (Exception connEx) {
+                logger.warn("PostgreSQL connection validation failed: {}. Closing pool...", connEx.getMessage());
+                pgDataSource.close();
+            }
+        } catch (Exception e) {
+            logger.warn("Could not initialize PostgreSQL DataSource: {}.", e.getMessage());
+        }
+
+        // Fallback to H2 In-Memory Database if PostgreSQL connection failed or database suspended by Render
+        logger.warn("--------------------------------------------------------------------------------");
+        logger.warn("FALLBACK: PostgreSQL DB is unavailable/suspended. Initializing H2 In-Memory DB.");
+        logger.warn("--------------------------------------------------------------------------------");
+
+        HikariConfig h2Config = new HikariConfig();
+        h2Config.setJdbcUrl("jdbc:h2:mem:stocksense;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE");
+        h2Config.setUsername("sa");
+        h2Config.setPassword("");
+        h2Config.setDriverClassName("org.h2.Driver");
+        h2Config.setMaximumPoolSize(10);
+        h2Config.setMinimumIdle(2);
+
+        return new HikariDataSource(h2Config);
+    }
+
+    private HikariConfig createHikariConfig(String jdbcUrl, String username, String password, String driverClass) {
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(finalJdbcUrl);
+        hikariConfig.setJdbcUrl(jdbcUrl);
         hikariConfig.setUsername(username);
         hikariConfig.setPassword(password);
-        hikariConfig.setDriverClassName(driverClassName);
-
-        // Connection pool optimization for cloud hosts (e.g. Render free tier)
+        hikariConfig.setDriverClassName(driverClass);
         hikariConfig.setMaximumPoolSize(10);
         hikariConfig.setMinimumIdle(2);
         hikariConfig.setIdleTimeout(300000);
-        hikariConfig.setConnectionTimeout(20000);
+        hikariConfig.setConnectionTimeout(5000); // 5 sec connection timeout
+        hikariConfig.setInitializationFailTimeout(5000L);
         hikariConfig.setMaxLifetime(1200000);
-
-        return new HikariDataSource(hikariConfig);
+        return hikariConfig;
     }
 }
