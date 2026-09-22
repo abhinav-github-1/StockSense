@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/", "/health", "/api/health", "/api/v1/health", "/api/auth/register", "/api/auth/login", "/error").permitAll()
                         .requestMatchers("/api/products/**", "/api/categories/**", "/api/suppliers/**", "/api/transactions/**", "/api/dashboard/**", "/api/alerts/**", "/api/reorder/**", "/api/inventory/**", "/api/users/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -67,9 +67,11 @@ public class SecurityConfig {
             configuration.setAllowedOriginPatterns(List.of("*"));
         }
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Total-Count"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

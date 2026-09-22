@@ -12,7 +12,9 @@ yarn-error.log*
 
 # Java & Maven
 **/target/
-**/.mvn/
+**/.mvn/*
+!**/.mvn/wrapper/
+!**/.mvn/wrapper/maven-wrapper.properties
 *.class
 *.jar
 *.war
